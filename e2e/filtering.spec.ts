@@ -64,3 +64,19 @@ test('search bar filters by title substring', async ({ page }) => {
   await expect(page.locator('.note-list__title', { hasText: 'Build Laputa App' })).not.toBeVisible()
   await page.screenshot({ path: 'test-results/search-budget.png' })
 })
+
+test('type filter pills narrow results', async ({ page }) => {
+  // Click "Projects" pill
+  await page.locator('.note-list__pill', { hasText: 'Projects' }).click()
+  await page.waitForTimeout(100)
+  const count = page.locator('.note-list__count')
+  await expect(count).toHaveText('1')
+  await expect(page.locator('.note-list__title', { hasText: 'Build Laputa App' })).toBeVisible()
+  await expect(page.locator('.note-list__title', { hasText: 'Matteo Cellini' })).not.toBeVisible()
+  await page.screenshot({ path: 'test-results/pill-projects.png' })
+
+  // Click "All" to reset
+  await page.locator('.note-list__pill', { hasText: 'All' }).click()
+  await page.waitForTimeout(100)
+  await expect(count).toHaveText('12')
+})

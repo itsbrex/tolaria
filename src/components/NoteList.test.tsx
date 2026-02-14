@@ -160,4 +160,31 @@ describe('NoteList', () => {
     const titleTexts = titles.map((el) => el.textContent)
     expect(titleTexts).toEqual(['Newest', 'Middle', 'Oldest'])
   })
+
+  it('renders type filter pills', () => {
+    const { container } = render(<NoteList entries={mockEntries} selection={allSelection} />)
+    const pills = container.querySelectorAll('.note-list__pill')
+    const labels = Array.from(pills).map((p) => p.textContent)
+    expect(labels).toContain('All')
+    expect(labels).toContain('Projects')
+    expect(labels).toContain('Notes')
+    expect(labels).toContain('Events')
+    expect(labels).toContain('People')
+  })
+
+  it('filters by type pill', () => {
+    render(<NoteList entries={mockEntries} selection={allSelection} />)
+    fireEvent.click(screen.getByText('Projects'))
+    expect(screen.getByText('Build Laputa App')).toBeInTheDocument()
+    expect(screen.queryByText('Matteo Cellini')).not.toBeInTheDocument()
+    expect(screen.queryByText('Facebook Ads Strategy')).not.toBeInTheDocument()
+  })
+
+  it('clicking All pill resets type filter', () => {
+    render(<NoteList entries={mockEntries} selection={allSelection} />)
+    fireEvent.click(screen.getByText('People'))
+    expect(screen.queryByText('Build Laputa App')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByText('All'))
+    expect(screen.getByText('Build Laputa App')).toBeInTheDocument()
+  })
 })

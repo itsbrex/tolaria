@@ -55,6 +55,37 @@
   border-color: #4a4a7a;
 }
 
+/* Type filter pills */
+.note-list__pills {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2a4a;
+  flex-wrap: wrap;
+}
+
+.note-list__pill {
+  padding: 3px 10px;
+  font-size: 11px;
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.note-list__pill:hover {
+  background: #2a2a4a;
+  color: #e0e0e0;
+}
+
+.note-list__pill--active {
+  background: #3a3a5a;
+  color: #ffffff;
+  border-color: #4a4a7a;
+}
+
 .note-list__items {
   flex: 1;
 }

@@ -55,8 +55,20 @@ function sortByModified(a: VaultEntry, b: VaultEntry): number {
   return (b.modifiedAt ?? 0) - (a.modifiedAt ?? 0)
 }
 
+const TYPE_PILLS = [
+  { label: 'All', type: null },
+  { label: 'Projects', type: 'Project' },
+  { label: 'Notes', type: 'Note' },
+  { label: 'Events', type: 'Event' },
+  { label: 'People', type: 'Person' },
+  { label: 'Experiments', type: 'Experiment' },
+  { label: 'Procedures', type: 'Procedure' },
+  { label: 'Responsibilities', type: 'Responsibility' },
+] as const
+
 export function NoteList({ entries, selection }: NoteListProps) {
   const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string | null>(null)
 
   const filtered = filterEntries(entries, selection)
 
@@ -71,9 +83,14 @@ export function NoteList({ entries, selection }: NoteListProps) {
 
   // Search filter (title substring, case-insensitive)
   const query = search.trim().toLowerCase()
-  const displayed = query
+  const searched = query
     ? sorted.filter((e) => e.title.toLowerCase().includes(query))
     : sorted
+
+  // Type filter pills
+  const displayed = typeFilter
+    ? searched.filter((e) => e.isA === typeFilter)
+    : searched
 
   return (
     <div className="note-list">
@@ -89,6 +106,17 @@ export function NoteList({ entries, selection }: NoteListProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+      </div>
+      <div className="note-list__pills">
+        {TYPE_PILLS.map(({ label, type }) => (
+          <button
+            key={label}
+            className={`note-list__pill${typeFilter === type ? ' note-list__pill--active' : ''}`}
+            onClick={() => setTypeFilter(type)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
       <div className="note-list__items">
         {displayed.length === 0 ? (
