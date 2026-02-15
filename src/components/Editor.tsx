@@ -72,12 +72,21 @@ function BlockNoteTab({ content, onNavigateWikilink }: { content: string; onNavi
   const navigateRef = useRef(onNavigateWikilink)
   navigateRef.current = onNavigateWikilink
 
+  // Extract wiki-link targets from the raw markdown
+  const wikiTargets = useMemo(() => {
+    const targets = new Set<string>()
+    const re = /\[\[([^\]]+)\]\]/g
+    let m
+    while ((m = re.exec(body))) targets.add(m[1])
+    return targets
+  }, [body])
+
   const editor = useCreateBlockNote({})
 
   // Load markdown content into editor
   useEffect(() => {
     async function load() {
-      // Convert [[target]] wiki-links to markdown links with wikilink: protocol
+      // Convert [[target]] wiki-links to markdown links — BlockNote renders them as underlined text
       const preprocessed = body.replace(/\[\[([^\]]+)\]\]/g, (_match, target) => `[${target}](https://wikilink.internal/${encodeURIComponent(target)})`)
       const blocks = await editor.tryParseMarkdownToBlocks(preprocessed)
       editor.replaceBlocks(editor.document, blocks)
@@ -86,40 +95,31 @@ function BlockNoteTab({ content, onNavigateWikilink }: { content: string; onNavi
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [body])
 
-  // Patch wikilink anchors: remove href (prevents browser navigation) and attach click handler
+  // Intercept all clicks in the editor — check if target is a wikilink anchor
   useEffect(() => {
     const WIKILINK_PREFIX = 'https://wikilink.internal/'
 
-    function patchWikilinks(root: Element) {
-      root.querySelectorAll<HTMLAnchorElement>(`a[href^="${WIKILINK_PREFIX}"]`).forEach((a) => {
-        const target = decodeURIComponent(a.getAttribute('href')!.replace(WIKILINK_PREFIX, ''))
-        a.removeAttribute('href')
-        a.style.cursor = 'pointer'
-        a.style.color = 'var(--accent-blue)'
-        a.style.textDecoration = 'underline'
-        a.dataset.wikilink = target
-        a.onclick = (e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          navigateRef.current(target)
-        }
-      })
+    const handler = (e: MouseEvent) => {
+      // Walk up from click target to find an <a> with wikilink href
+      let el = e.target as HTMLElement | null
+      while (el && el.tagName !== 'A') el = el.parentElement
+      if (!el) return
+      const href = (el as HTMLAnchorElement).getAttribute('href') || ''
+      if (href.startsWith(WIKILINK_PREFIX)) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        const target = decodeURIComponent(href.replace(WIKILINK_PREFIX, ''))
+        navigateRef.current(target)
+        return false
+      }
     }
 
-    // Patch on initial render and watch for DOM changes (BlockNote re-renders blocks)
+    // Capture phase on the container
     const container = document.querySelector('.editor__blocknote-container')
     if (!container) return
-
-    // Initial patch (delayed to let BlockNote render)
-    const timer = setTimeout(() => patchWikilinks(container), 200)
-
-    const observer = new MutationObserver(() => patchWikilinks(container))
-    observer.observe(container, { childList: true, subtree: true })
-
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-    }
+    container.addEventListener('click', handler as EventListener, true)
+    return () => container.removeEventListener('click', handler as EventListener, true)
   }, [editor])
 
   const isDark = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') !== 'light'
