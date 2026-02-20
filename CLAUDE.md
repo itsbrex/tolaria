@@ -44,6 +44,22 @@ Features in this project are often described at a high level on purpose. Luca tr
 - **Never block waiting for instructions.** Luca may not read messages for hours. If you're stuck on a product decision, make the call yourself. The worst case is a short code review; the alternative is hours of delay.
 - **Document your reasoning.** When you make a non-obvious product decision (e.g., "I chose to show archived notes grayed out rather than hiding them entirely"), note it in the relevant `docs/` file so Luca can review and adjust.
 
+### Always produce a design file
+
+Every feature must have a `design/<slug>.pen` file committed on the feature branch. This is mandatory — Luca reviews it as part of the In Review step.
+
+**The main design file** lives at `~/OpenClaw/Laputa-app-design.pen`. Copy it as a starting point:
+```bash
+mkdir -p design && cp ~/OpenClaw/Laputa-app-design.pen design/<slug>.pen
+```
+
+Add new frames to `children[]` for the feature's screens/states. Use existing `variables` (design tokens) — don't invent new values.
+
+**Complex feature** (new panel, new modal, new UI surface) → design first, then implement.
+**Simple feature** (new property, filter pill, minor modification) → implement first, then update design to reflect what was built.
+
+Commit with: `git add design/<slug>.pen && git commit -m "design: <feature> wireframes"`
+
 ### Always update test data
 
 If a feature requires new data to be testable (e.g., a new `archived: true` property in frontmatter, a new type of note, a relationship type), update `src/mock-tauri.ts` with realistic examples before writing the feature. This ensures visual verification actually tests the new code path.
