@@ -4,7 +4,7 @@
 Laputa App is a personal knowledge and life management desktop app, built with Tauri v2 + React + TypeScript + CodeMirror 6. It reads a vault of markdown files with YAML frontmatter and presents them in a four-panel UI inspired by Bear Notes.
 
 **Full project spec** (ontology, UI design, milestones): `~/OpenClaw/projects/laputa-app.md`
-**UI wireframes**: `~/OpenClaw/Laputa-app-design.pen`
+**UI wireframes**: `ui-design.pen`
 
 ## Tech Stack
 - **Desktop shell**: Tauri v2 (Rust backend)
@@ -48,9 +48,9 @@ Features in this project are often described at a high level on purpose. Luca tr
 
 Every feature must have a `design/<slug>.pen` file committed on the feature branch. This is mandatory — Luca reviews it as part of the In Review step.
 
-**The main design file** lives at `~/OpenClaw/Laputa-app-design.pen`. Copy it as a starting point:
+**The main design file** lives at `ui-design.pen`. Copy it as a starting point:
 ```bash
-mkdir -p design && cp ~/OpenClaw/Laputa-app-design.pen design/<slug>.pen
+mkdir -p design && cp ui-design.pen design/<slug>.pen
 ```
 
 Add new frames to `children[]` for the feature's screens/states. Use existing `variables` (design tokens) — don't invent new values.
