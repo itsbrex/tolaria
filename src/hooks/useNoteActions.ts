@@ -4,6 +4,27 @@ import { isTauri, mockInvoke, addMockEntry, updateMockContent } from '../mock-ta
 import type { VaultEntry } from '../types'
 import type { FrontmatterValue } from '../components/Inspector'
 
+interface RenameResult {
+  new_path: string
+  updated_files: number
+}
+
+async function performRename(
+  path: string,
+  newTitle: string,
+  vaultPath: string,
+): Promise<RenameResult> {
+  if (isTauri()) {
+    return invoke<RenameResult>('rename_note', { vaultPath, oldPath: path, newTitle })
+  }
+  return mockInvoke<RenameResult>('rename_note', { vault_path: vaultPath, old_path: path, new_title: newTitle })
+}
+
+function buildRenamedEntry(entry: VaultEntry, newTitle: string, newPath: string): VaultEntry {
+  const slug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  return { ...entry, path: newPath, filename: `${slug}.md`, title: newTitle }
+}
+
 interface Tab {
   entry: VaultEntry
   content: string
@@ -379,6 +400,30 @@ export function useNoteActions(
     setActiveTabPath(null)
   }, [])
 
+  const handleRenameNote = useCallback(async (
+    path: string,
+    newTitle: string,
+    vaultPath: string,
+    onEntryRenamed: (oldPath: string, newEntry: Partial<VaultEntry> & { path: string }, newContent: string) => void,
+  ) => {
+    try {
+      const result = await performRename(path, newTitle, vaultPath)
+      const newContent = await loadNoteContent(result.new_path)
+      const tab = tabsRef.current.find((t) => t.entry.path === path)
+      const newEntry = buildRenamedEntry(tab?.entry ?? {} as VaultEntry, newTitle, result.new_path)
+
+      setTabs((prev) => prev.map((t) => t.entry.path === path ? { entry: newEntry, content: newContent } : t))
+      if (activeTabPathRef.current === path) setActiveTabPath(result.new_path)
+      onEntryRenamed(path, newEntry, newContent)
+
+      const n = result.updated_files
+      setToastMessage(n > 0 ? `Renamed — updated ${n} wiki link${n > 1 ? 's' : ''}` : 'Renamed')
+    } catch (err) {
+      console.error('Failed to rename note:', err)
+      setToastMessage('Failed to rename note')
+    }
+  }, [setToastMessage])
+
   return {
     tabs,
     activeTabPath,
@@ -395,6 +440,7 @@ export function useNoteActions(
     handleDeleteProperty,
     handleAddProperty,
     handleReplaceActiveTab,
+    handleRenameNote,
     closeAllTabs,
   }
 }

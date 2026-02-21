@@ -127,6 +127,10 @@ function App() {
     setToastMessage('Note restored from trash')
   }, [notes, vault, setToastMessage])
 
+  const handleRenameTab = useCallback((path: string, newTitle: string) => {
+    notes.handleRenameNote(path, newTitle, vaultPath, vault.replaceEntry)
+  }, [notes, vaultPath, vault])
+
   const handleReorderSections = useCallback((orderedTypes: { typeName: string; order: number }[]) => {
     for (const { typeName, order } of orderedTypes) {
       const typeEntry = vault.entries.find((e) => e.isA === 'Type' && e.title === typeName)
@@ -221,6 +225,7 @@ function App() {
             vaultPath={vaultPath}
             onTrashNote={handleTrashNote}
             onRestoreNote={handleRestoreNote}
+            onRenameTab={handleRenameTab}
           />
         </div>
       </div>

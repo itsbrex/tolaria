@@ -1658,6 +1658,42 @@ const mockHandlers: Record<string, (args: any) => any> = {
     const timestamp = Date.now()
     return `${vault}/attachments/${timestamp}-${args.filename}`
   },
+  rename_note: (args: { vault_path: string; old_path: string; new_title: string }) => {
+    const oldContent = MOCK_CONTENT[args.old_path] ?? ''
+    const slug = args.new_title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const parentDir = args.old_path.replace(/\/[^/]+$/, '')
+    const newPath = `${parentDir}/${slug}.md`
+
+    // Update H1 heading in content
+    const newContent = oldContent.replace(/^# .+$/m, `# ${args.new_title}`)
+
+    // Move content to new path
+    delete MOCK_CONTENT[args.old_path]
+    MOCK_CONTENT[newPath] = newContent
+
+    // Update wikilinks in other notes
+    const oldEntry = MOCK_ENTRIES.find(e => e.path === args.old_path)
+    const oldTitle = oldEntry?.title ?? ''
+    let updatedFiles = 0
+    if (oldTitle) {
+      const pattern = new RegExp(`\\[\\[${oldTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\|[^\\]]*?)?\\]\\]`, 'g')
+      for (const [path, content] of Object.entries(MOCK_CONTENT)) {
+        if (path === newPath) continue
+        const replaced = content.replace(pattern, (_m: string, pipe: string | undefined) =>
+          pipe ? `[[${args.new_title}${pipe}]]` : `[[${args.new_title}]]`
+        )
+        if (replaced !== content) {
+          MOCK_CONTENT[path] = replaced
+          updatedFiles++
+        }
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.__mockContent = MOCK_CONTENT
+    }
+    return { new_path: newPath, updated_files: updatedFiles }
+  },
 }
 
 export function isTauri(): boolean {
