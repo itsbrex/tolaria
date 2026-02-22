@@ -36,6 +36,7 @@ export function useVaultLoader(vaultPath: string) {
   const [modifiedFiles, setModifiedFiles] = useState<ModifiedFile[]>([])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clear stale data then load new vault
     setEntries([]); setAllContent({}); setModifiedFiles([])
     loadVaultData(vaultPath)
       .then(({ entries: e, allContent: c }) => { setEntries(e); setAllContent(c) })
@@ -51,7 +52,7 @@ export function useVaultLoader(vaultPath: string) {
     }
   }, [vaultPath])
 
-  useEffect(() => { loadModifiedFiles() }, [loadModifiedFiles])
+  useEffect(() => { loadModifiedFiles() }, [loadModifiedFiles]) // eslint-disable-line react-hooks/set-state-in-effect -- trigger initial load
 
   const addEntry = useCallback((entry: VaultEntry, content: string) => {
     setEntries((prev) => [entry, ...prev])

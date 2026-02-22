@@ -61,7 +61,7 @@ export function useAIChat(
       return
     }
 
-    const { prompt: systemPrompt } = buildSystemPrompt(contextNotes, allContent, model)
+    const { prompt: systemPrompt } = buildSystemPrompt(contextNotes, allContent)
     let accumulated = ''
 
     const onChunk = (chunk: string) => {

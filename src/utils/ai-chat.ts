@@ -35,7 +35,6 @@ export function getContextLimit(): number {
 export function buildSystemPrompt(
   notes: VaultEntry[],
   allContent: Record<string, string>,
-  model: string,
 ): { prompt: string; totalTokens: number; truncated: boolean } {
   if (notes.length === 0) {
     return { prompt: '', totalTokens: 0, truncated: false }

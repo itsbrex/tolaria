@@ -82,9 +82,9 @@ export function useTabManagement() {
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabPath, setActiveTabPath] = useState<string | null>(null)
   const activeTabPathRef = useRef(activeTabPath)
-  activeTabPathRef.current = activeTabPath
+  useEffect(() => { activeTabPathRef.current = activeTabPath })
   const tabsRef = useRef(tabs)
-  tabsRef.current = tabs
+  useEffect(() => { tabsRef.current = tabs })
   const handleCloseTabRef = useRef<(path: string) => void>(() => {})
 
   const handleSelectNote = useCallback(async (entry: VaultEntry) => {
@@ -111,7 +111,7 @@ export function useTabManagement() {
       return next
     })
   }, [])
-  handleCloseTabRef.current = handleCloseTab
+  useEffect(() => { handleCloseTabRef.current = handleCloseTab })
 
   const handleSwitchTab = useCallback((path: string) => {
     setActiveTabPath(path)
@@ -152,7 +152,7 @@ export function useTabManagement() {
   useEffect(() => {
     const savedOrder = loadTabOrder()
     if (savedOrder.length > 0) {
-      setTabs((prev) => restoreOrder(prev, savedOrder))
+      setTabs((prev) => restoreOrder(prev, savedOrder)) // eslint-disable-line react-hooks/set-state-in-effect -- restore tab order on mount
     }
   }, [])
 

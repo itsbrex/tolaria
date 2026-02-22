@@ -15,7 +15,7 @@ export function CreateTypeDialog({ open, onClose, onCreate }: CreateTypeDialogPr
 
   useEffect(() => {
     if (open) {
-      setName('')
+      setName('') // eslint-disable-line react-hooks/set-state-in-effect -- reset on dialog open
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open])

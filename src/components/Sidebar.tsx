@@ -56,7 +56,7 @@ function useOutsideClick(ref: React.RefObject<HTMLElement | null>, isOpen: boole
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [isOpen, onClose])
+  }, [ref, isOpen, onClose])
 }
 
 function buildTypeEntryMap(entries: VaultEntry[]): Record<string, VaultEntry> {

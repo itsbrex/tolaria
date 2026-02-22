@@ -187,6 +187,7 @@ function useContextNotes(entry: VaultEntry | null) {
 
   useEffect(() => {
     if (entry) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync context when active note changes
       setContextNotes(prev => prev.some(n => n.path === entry.path) ? prev : [entry, ...prev])
     }
   }, [entry?.path]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -215,8 +216,8 @@ export function AIChatPanel({ entry, allContent, entries = [], onClose }: AIChat
   const chat = useAIChat(entry, allContent, ctx.contextNotes, model)
 
   const contextInfo = useMemo(
-    () => buildSystemPrompt(ctx.contextNotes, allContent, model),
-    [ctx.contextNotes, allContent, model],
+    () => buildSystemPrompt(ctx.contextNotes, allContent),
+    [ctx.contextNotes, allContent],
   )
 
   useEffect(() => {

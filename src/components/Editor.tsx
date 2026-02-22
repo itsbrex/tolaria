@@ -126,7 +126,7 @@ const schema = BlockNoteSchema.create({
 /** Single BlockNote editor view — content is swapped via replaceBlocks */
 function SingleEditorView({ editor, entries, onNavigateWikilink }: { editor: ReturnType<typeof useCreateBlockNote>; entries: VaultEntry[]; onNavigateWikilink: (target: string) => void }) {
   const navigateRef = useRef(onNavigateWikilink)
-  navigateRef.current = onNavigateWikilink
+  useEffect(() => { navigateRef.current = onNavigateWikilink }, [onNavigateWikilink])
   const { cssVars } = useEditorTheme()
 
   // Keep module-level ref in sync so WikiLink renderer can access vault entries

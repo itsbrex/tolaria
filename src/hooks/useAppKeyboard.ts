@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 
 interface KeyboardActions {
   onQuickOpen: () => void
@@ -16,22 +16,22 @@ export function useAppKeyboard({
   onQuickOpen, onCreateNote, onSave, onTrashNote, onArchiveNote,
   activeTabPathRef, handleCloseTabRef,
 }: KeyboardActions) {
-  const withActiveTab = (fn: (path: string) => void): ShortcutHandler => () => {
-    const path = activeTabPathRef.current
-    if (path) fn(path)
-  }
-
-  const keyMap = useMemo((): Record<string, ShortcutHandler> => ({
-    p: onQuickOpen,
-    n: onCreateNote,
-    s: onSave,
-    e: withActiveTab(onArchiveNote),
-    w: withActiveTab((path) => handleCloseTabRef.current(path)),
-    Backspace: withActiveTab(onTrashNote),
-    Delete: withActiveTab(onTrashNote),
-  }), [onQuickOpen, onCreateNote, onSave, onTrashNote, onArchiveNote, activeTabPathRef, handleCloseTabRef])
-
   useEffect(() => {
+    const withActiveTab = (fn: (path: string) => void): ShortcutHandler => () => {
+      const path = activeTabPathRef.current
+      if (path) fn(path)
+    }
+
+    const keyMap: Record<string, ShortcutHandler> = {
+      p: onQuickOpen,
+      n: onCreateNote,
+      s: onSave,
+      e: withActiveTab(onArchiveNote),
+      w: withActiveTab((path) => handleCloseTabRef.current(path)),
+      Backspace: withActiveTab(onTrashNote),
+      Delete: withActiveTab(onTrashNote),
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey
       if (!mod) return
@@ -43,5 +43,5 @@ export function useAppKeyboard({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [keyMap])
+  }, [onQuickOpen, onCreateNote, onSave, onTrashNote, onArchiveNote, activeTabPathRef, handleCloseTabRef])
 }

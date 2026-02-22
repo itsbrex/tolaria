@@ -39,8 +39,8 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
 
   useEffect(() => {
     if (open) {
-      setQuery('')
-      setSelectedIndex(0)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on dialog open
+      setQuery(''); setSelectedIndex(0)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open])
@@ -58,7 +58,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
   }, [entries, query])
 
   useEffect(() => {
-    setSelectedIndex(0)
+    setSelectedIndex(0) // eslint-disable-line react-hooks/set-state-in-effect -- reset selection on query change
   }, [query])
 
   useEffect(() => {

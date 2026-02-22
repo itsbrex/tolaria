@@ -1,4 +1,4 @@
-import type { ComponentType, SVGAttributes } from 'react'
+import { useMemo, type ComponentType, type SVGAttributes } from 'react'
 import type { VaultEntry } from '../types'
 import { cn } from '@/lib/utils'
 import {
@@ -26,11 +26,19 @@ export function getTypeIcon(isA: string | null, customIcon?: string | null): Com
   return (isA && TYPE_ICON_MAP[isA]) || FileText
 }
 
+const THIRTY_DAYS_SECS = 86400 * 30
+
 function TrashDateLine({ entry }: { entry: VaultEntry }) {
-  const trashedAge = entry.trashedAt ? (Date.now() / 1000 - entry.trashedAt) : 0
-  const isExpired = trashedAge >= 86400 * 30
+  const { isExpired, suffix } = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- Date.now() intentionally memoized on trashedAt
+    const trashedAge = entry.trashedAt ? (Date.now() / 1000 - entry.trashedAt) : 0
+    const expired = trashedAge >= THIRTY_DAYS_SECS
+    return {
+      isExpired: expired,
+      suffix: expired ? ' — will be permanently deleted' : '',
+    }
+  }, [entry.trashedAt])
   const style = isExpired ? { color: 'var(--destructive)', fontWeight: 500 } as const : undefined
-  const suffix = isExpired ? ' — will be permanently deleted' : ''
   return (
     <div className="mt-0.5 text-[10px] text-muted-foreground" style={style}>
       Trashed {relativeDate(entry.trashedAt)}{suffix}
@@ -47,7 +55,7 @@ export function NoteItem({ entry, isSelected, typeEntryMap, onSelectNote }: {
   const te = typeEntryMap[entry.isA ?? '']
   const typeColor = getTypeColor(entry.isA ?? 'Note', te?.color)
   const typeLightColor = getTypeLightColor(entry.isA ?? 'Note', te?.color)
-  const TypeIcon = getTypeIcon(entry.isA, te?.icon)
+  const TypeIcon = useMemo(() => getTypeIcon(entry.isA, te?.icon), [entry.isA, te?.icon])
 
   return (
     <div
@@ -62,6 +70,7 @@ export function NoteItem({ entry, isSelected, typeEntryMap, onSelectNote }: {
       }}
       onClick={() => onSelectNote(entry)}
     >
+      {/* eslint-disable-next-line react-hooks/static-components -- icon lookup from static map, no internal state */}
       <TypeIcon width={14} height={14} className="absolute right-3 top-2.5" style={{ color: typeColor }} data-testid="type-icon" />
       <div className="pr-5">
         <div className={cn("truncate text-[13px] text-foreground", isSelected ? "font-semibold" : "font-medium")}>

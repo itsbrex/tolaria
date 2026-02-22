@@ -33,8 +33,8 @@ export function CreateNoteDialog({ open, onClose, onCreate, defaultType, customT
 
   useEffect(() => {
     if (open) {
-      setTitle('')
-      setType(defaultType ?? 'Note')
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on dialog open
+      setTitle(''); setType(defaultType ?? 'Note')
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open, defaultType])

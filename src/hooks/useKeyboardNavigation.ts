@@ -88,7 +88,7 @@ function arrowDirection(key: string): 1 | -1 {
 
 function useLatestRef<T>(value: T): React.RefObject<T> {
   const ref = useRef(value)
-  ref.current = value
+  useEffect(() => { ref.current = value })
   return ref
 }
 
@@ -119,5 +119,5 @@ export function useKeyboardNavigation({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [tabsRef, activeTabPathRef, visibleNotesRef, onSwitchTabRef, onReplaceRef, onSelectNoteRef])
 }

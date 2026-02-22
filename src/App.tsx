@@ -86,6 +86,7 @@ function App() {
   useEffect(() => {
     if (!notes.activeTabPath) { setGitHistory([]); return }
     vault.loadGitHistory(notes.activeTabPath).then(setGitHistory)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vault object is unstable; loadGitHistory is the actual dep
   }, [notes.activeTabPath, vault.loadGitHistory])
 
   const openCreateTypeDialog = useCallback(() => {

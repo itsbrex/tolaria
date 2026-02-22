@@ -38,9 +38,10 @@ function PinnedCard({ entry, typeEntryMap, onSelectNote, showDate }: {
   const te = typeEntryMap[entry.isA ?? '']
   const color = getTypeColor(entry.isA ?? '', te?.color)
   const bgColor = getTypeLightColor(entry.isA ?? '', te?.color)
-  const Icon = getTypeIcon(entry.isA, te?.icon)
+  const Icon = useMemo(() => getTypeIcon(entry.isA, te?.icon), [entry.isA, te?.icon])
   return (
     <div className="relative cursor-pointer border-b border-[var(--border)]" style={{ backgroundColor: bgColor, padding: '14px 16px' }} onClick={() => onSelectNote(entry)}>
+      {/* eslint-disable-next-line react-hooks/static-components -- icon lookup from static map, no internal state */}
       <Icon width={16} height={16} className="absolute right-3 top-3.5" style={{ color }} data-testid="type-icon" />
       <div className="pr-6 text-[14px] font-bold" style={{ color }}>{entry.title}</div>
       <div className="mt-1 text-[12px] leading-[1.5] opacity-80" style={{ color, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{entry.snippet}</div>
@@ -174,10 +175,10 @@ function countExpiredTrash(entries: VaultEntry[]): number {
 
 interface NoteListDataParams {
   entries: VaultEntry[]; selection: SidebarSelection; allContent: Record<string, string>
-  query: string; listSort: SortOption; modifiedFiles?: ModifiedFile[]
+  query: string; listSort: SortOption
 }
 
-function useNoteListData({ entries, selection, allContent, query, listSort, modifiedFiles }: NoteListDataParams) {
+function useNoteListData({ entries, selection, allContent, query, listSort }: NoteListDataParams) {
   const isEntityView = selection.kind === 'entity'
   const isTrashView = selection.kind === 'filter' && selection.filter === 'trash'
 
@@ -190,7 +191,7 @@ function useNoteListData({ entries, selection, allContent, query, listSort, modi
     if (isEntityView) return []
     const sorted = [...filterEntries(entries, selection)].sort(getSortComparator(listSort))
     return filterByQuery(sorted, query)
-  }, [entries, selection, modifiedFiles, isEntityView, listSort, query])
+  }, [entries, selection, isEntityView, listSort, query])
 
   const searchedGroups = useMemo(() => {
     if (!isEntityView) return []
@@ -208,7 +209,7 @@ function useNoteListData({ entries, selection, allContent, query, listSort, modi
 
 // --- Main component ---
 
-function NoteListInner({ entries, selection, selectedNote, allContent, modifiedFiles, onSelectNote, onCreateNote }: NoteListProps) {
+function NoteListInner({ entries, selection, selectedNote, allContent, onSelectNote, onCreateNote }: NoteListProps) {
   const [search, setSearch] = useState('')
   const [searchVisible, setSearchVisible] = useState(false)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
@@ -225,7 +226,7 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
   const typeEntryMap = useTypeEntryMap(entries)
   const query = search.trim().toLowerCase()
   const listSort = sortPrefs['__list__'] ?? 'modified'
-  const { isEntityView, isTrashView, typeDocument, searched, searchedGroups, expiredTrashCount } = useNoteListData({ entries, selection, allContent, query, listSort, modifiedFiles })
+  const { isEntityView, isTrashView, typeDocument, searched, searchedGroups, expiredTrashCount } = useNoteListData({ entries, selection, allContent, query, listSort })
 
   const renderItem = useCallback((entry: VaultEntry) => (
     <NoteItem key={entry.path} entry={entry} isSelected={selectedNote?.path === entry.path} typeEntryMap={typeEntryMap} onSelectNote={onSelectNote} />
