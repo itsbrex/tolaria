@@ -14,7 +14,7 @@ interface NewEntryParams {
   status: string | null
 }
 
-function buildNewEntry({ path, slug, title, type, status }: NewEntryParams): VaultEntry {
+export function buildNewEntry({ path, slug, title, type, status }: NewEntryParams): VaultEntry {
   const now = Math.floor(Date.now() / 1000)
   return {
     path, filename: `${slug}.md`, title, isA: type,
@@ -25,7 +25,7 @@ function buildNewEntry({ path, slug, title, type, status }: NewEntryParams): Vau
   }
 }
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
@@ -42,7 +42,7 @@ export function generateUntitledName(entries: VaultEntry[], type: string): strin
   return title
 }
 
-function entryMatchesTarget(e: VaultEntry, targetLower: string, targetAsWords: string): boolean {
+export function entryMatchesTarget(e: VaultEntry, targetLower: string, targetAsWords: string): boolean {
   if (e.title.toLowerCase() === targetLower) return true
   if (e.aliases.some((a) => a.toLowerCase() === targetLower)) return true
   const pathStem = e.path.replace(/^.*\/Laputa\//, '').replace(/\.md$/, '')
@@ -81,14 +81,14 @@ function addEntryWithMock(entry: VaultEntry, content: string, addEntry: (e: Vaul
   addEntry(entry, content)
 }
 
-function buildNoteContent(title: string, type: string, status: string | null): string {
+export function buildNoteContent(title: string, type: string, status: string | null): string {
   const lines = ['---', `title: ${title}`, `is_a: ${type}`]
   if (status) lines.push(`status: ${status}`)
   lines.push('---')
   return `${lines.join('\n')}\n\n# ${title}\n\n`
 }
 
-function resolveNewNote(title: string, type: string): { entry: VaultEntry; content: string } {
+export function resolveNewNote(title: string, type: string): { entry: VaultEntry; content: string } {
   const folder = TYPE_FOLDER_MAP[type] || slugify(type)
   const slug = slugify(title)
   const status = NO_STATUS_TYPES.has(type) ? null : 'Active'
@@ -96,7 +96,7 @@ function resolveNewNote(title: string, type: string): { entry: VaultEntry; conte
   return { entry, content: buildNoteContent(title, type, status) }
 }
 
-function resolveNewType(typeName: string): { entry: VaultEntry; content: string } {
+export function resolveNewType(typeName: string): { entry: VaultEntry; content: string } {
   const slug = slugify(typeName)
   const entry = buildNewEntry({ path: `/Users/luca/Laputa/type/${slug}.md`, slug, title: typeName, type: 'Type', status: null })
   return { entry, content: `---\nIs A: Type\n---\n\n# ${typeName}\n\n` }
