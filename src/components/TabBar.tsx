@@ -183,7 +183,7 @@ export const TabBar = memo(function TabBar({
       >
         <button
           className="flex items-center justify-center border-none bg-transparent p-0 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-          onClick={onCreateNote}
+          onClick={() => onCreateNote?.()}
           title="New note"
         >
           <Plus size={16} />

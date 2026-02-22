@@ -611,7 +611,7 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
           </button>
           <button
             className="flex items-center text-muted-foreground transition-colors hover:text-foreground"
-            onClick={onCreateNote}
+            onClick={() => onCreateNote()}
             title="Create new note"
           >
             <Plus size={16} />
