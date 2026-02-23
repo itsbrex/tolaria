@@ -32,7 +32,7 @@ function defaultMockInvoke(cmd: string, args?: Record<string, unknown>) {
   if (cmd === 'get_modified_files') return Promise.resolve(mockModifiedFiles)
   if (cmd === 'get_file_history') return Promise.resolve(mockGitHistory)
   if (cmd === 'get_file_diff') return Promise.resolve('--- a/note.md\n+++ b/note.md')
-  if (cmd === 'get_file_diff_at_commit') return Promise.resolve(`diff for ${args?.commitHash}`)
+  if (cmd === 'get_file_diff_at_commit') return Promise.resolve(`diff for ${(args as Record<string, string>)?.commitHash}`)
   if (cmd === 'git_commit') return Promise.resolve('committed')
   if (cmd === 'git_push') return Promise.resolve('pushed')
   return Promise.resolve(null)
@@ -46,7 +46,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('../mock-tauri', () => ({
   isTauri: () => false,
-  mockInvoke: (cmd: string, args?: any) => mockInvokeFn(cmd, args),
+  mockInvoke: (cmd: string, args?: Record<string, unknown>) => mockInvokeFn(cmd, args),
 }))
 
 describe('useVaultLoader', () => {
@@ -170,7 +170,7 @@ describe('useVaultLoader', () => {
         if (cmd === 'get_all_content') return Promise.resolve({})
         if (cmd === 'get_modified_files') return Promise.resolve([])
         return Promise.resolve(null)
-      }) as any)
+      }) as typeof defaultMockInvoke)
 
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const { result } = renderHook(() => useVaultLoader('/vault'))

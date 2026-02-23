@@ -19,10 +19,10 @@ const savedSettings: Settings = {
 
 let mockSettingsStore: Settings = { ...defaultSettings }
 
-const mockInvokeFn = vi.fn((cmd: string, args?: any): Promise<any> => {
+const mockInvokeFn = vi.fn((cmd: string, args?: Record<string, unknown>): Promise<unknown> => {
   if (cmd === 'get_settings') return Promise.resolve({ ...mockSettingsStore })
   if (cmd === 'save_settings') {
-    mockSettingsStore = { ...args.settings }
+    mockSettingsStore = { ...(args as { settings: Settings }).settings }
     return Promise.resolve(null)
   }
   return Promise.resolve(null)
@@ -34,7 +34,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('../mock-tauri', () => ({
   isTauri: () => false,
-  mockInvoke: (cmd: string, args?: any) => mockInvokeFn(cmd, args),
+  mockInvoke: (cmd: string, args?: Record<string, unknown>) => mockInvokeFn(cmd, args),
 }))
 
 describe('useSettings', () => {

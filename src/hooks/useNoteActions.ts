@@ -197,6 +197,7 @@ export function useNoteActions(config: NoteActionsConfig) {
   const tabMgmt = useTabManagement()
   const { setTabs, handleSelectNote, activeTabPathRef, handleSwitchTab } = tabMgmt
   const tabsRef = useRef(tabMgmt.tabs)
+  // eslint-disable-next-line react-hooks/refs
   tabsRef.current = tabMgmt.tabs
 
   const updateTabContent = useCallback((path: string, newContent: string) => {

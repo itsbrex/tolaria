@@ -65,11 +65,11 @@ describe('useKeyboardNavigation', () => {
     // Track added listeners for cleanup verification
     const origAdd = window.addEventListener
     const origRemove = window.removeEventListener
-    vi.spyOn(window, 'addEventListener').mockImplementation((type: string, handler: EventListenerOrEventListenerObject, opts?: any) => {
+    vi.spyOn(window, 'addEventListener').mockImplementation((type: string, handler: EventListenerOrEventListenerObject, opts?: boolean | AddEventListenerOptions) => {
       addedListeners.push({ type, handler })
       origAdd.call(window, type, handler, opts)
     })
-    vi.spyOn(window, 'removeEventListener').mockImplementation((type: string, handler: EventListenerOrEventListenerObject, opts?: any) => {
+    vi.spyOn(window, 'removeEventListener').mockImplementation((type: string, handler: EventListenerOrEventListenerObject, opts?: boolean | EventListenerOptions) => {
       origRemove.call(window, type, handler, opts)
     })
   })

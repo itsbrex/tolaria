@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import type { ViewMode } from './useViewMode'
 
 interface KeyboardActions {
@@ -48,27 +48,29 @@ export function useAppKeyboard({
   onQuickOpen, onCreateNote, onSave, onOpenSettings, onTrashNote, onArchiveNote,
   onSetViewMode, activeTabPathRef, handleCloseTabRef,
 }: KeyboardActions) {
-  const withActiveTab = (fn: (path: string) => void): ShortcutHandler => () => {
-    const path = activeTabPathRef.current
-    if (path) fn(path)
-  }
-
-  const cmdKeyMap = useMemo((): Record<string, ShortcutHandler> => ({
-    p: onQuickOpen,
-    n: onCreateNote,
-    s: onSave,
-    ',': onOpenSettings,
-    e: withActiveTab(onArchiveNote),
-    w: withActiveTab((path) => handleCloseTabRef.current(path)),
-    Backspace: withActiveTab(onTrashNote),
-    Delete: withActiveTab(onTrashNote),
-  }), [onQuickOpen, onCreateNote, onSave, onOpenSettings, onTrashNote, onArchiveNote, activeTabPathRef, handleCloseTabRef])
-
   useEffect(() => {
+    const withActiveTab = (fn: (path: string) => void): ShortcutHandler => () => {
+      const path = activeTabPathRef.current
+      if (path) fn(path)
+    }
+
+    const cmdKeyMap: Record<string, ShortcutHandler> = {
+      p: onQuickOpen,
+      n: onCreateNote,
+      s: onSave,
+      ',': onOpenSettings,
+      e: withActiveTab(onArchiveNote),
+      w: withActiveTab((path) => handleCloseTabRef.current(path)),
+      Backspace: withActiveTab(onTrashNote),
+      Delete: withActiveTab(onTrashNote),
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      handleViewModeKey(e, onSetViewMode) || handleCmdKey(e, cmdKeyMap)
+      if (!handleViewModeKey(e, onSetViewMode)) {
+        handleCmdKey(e, cmdKeyMap)
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [cmdKeyMap, onSetViewMode])
+  }, [onQuickOpen, onCreateNote, onSave, onOpenSettings, onTrashNote, onArchiveNote, activeTabPathRef, handleCloseTabRef, onSetViewMode])
 }

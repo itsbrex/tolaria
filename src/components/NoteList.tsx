@@ -11,13 +11,9 @@ import {
   type SortOption, type SortDirection, type SortConfig, type RelationshipGroup,
   getSortComparator,
   buildRelationshipGroups, filterEntries,
-  sortByModified, relativeDate, getDisplayDate,
+  relativeDate, getDisplayDate,
   loadSortPreferences, saveSortPreferences,
 } from '../utils/noteListHelpers'
-
-// Re-export for consumers
-export { sortByModified, filterEntries, buildRelationshipGroups, getSortComparator }
-export type { SortOption }
 
 interface NoteListProps {
   entries: VaultEntry[]
@@ -41,6 +37,7 @@ function PinnedCard({ entry, typeEntryMap, onSelectNote, showDate }: {
   const Icon = getTypeIcon(entry.isA, te?.icon)
   return (
     <div className="relative cursor-pointer border-b border-[var(--border)]" style={{ backgroundColor: bgColor, padding: '14px 16px' }} onClick={() => onSelectNote(entry)}>
+      {/* eslint-disable-next-line react-hooks/static-components */}
       <Icon width={16} height={16} className="absolute right-3 top-3.5" style={{ color }} data-testid="type-icon" />
       <div className="pr-6 text-[14px] font-bold" style={{ color }}>{entry.title}</div>
       <div className="mt-1 text-[12px] leading-[1.5] opacity-80" style={{ color, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{entry.snippet}</div>
@@ -219,7 +216,7 @@ function NoteListInner({ entries, selection, selectedNote, allContent, modifiedF
   }, [])
 
   const toggleGroup = useCallback((label: string) => {
-    setCollapsedGroups((prev) => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next })
+    setCollapsedGroups((prev) => { const next = new Set(prev); if (next.has(label)) { next.delete(label) } else { next.add(label) }; return next })
   }, [])
 
   const typeEntryMap = useTypeEntryMap(entries)

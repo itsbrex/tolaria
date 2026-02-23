@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { NoteList, getSortComparator, filterEntries } from './NoteList'
+import { NoteList } from './NoteList'
+import { getSortComparator, filterEntries } from '../utils/noteListHelpers'
 import type { VaultEntry, SidebarSelection } from '../types'
 
 const allSelection: SidebarSelection = { kind: 'filter', filter: 'all' }

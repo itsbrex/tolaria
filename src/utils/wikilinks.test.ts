@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { preProcessWikilinks, injectWikilinks, splitFrontmatter, countWords } from './wikilinks'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper for asserting on opaque block structures
-type AnyBlock = any
+interface TestBlock {
+  type?: string
+  text?: string
+  content?: TestBlock[]
+  children?: TestBlock[]
+  props?: Record<string, string>
+  href?: string
+  [key: string]: unknown
+}
 
 describe('preProcessWikilinks', () => {
   it('replaces [[target]] with placeholder tokens', () => {
@@ -43,15 +50,15 @@ describe('injectWikilinks', () => {
       ],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[] as AnyBlock[]
+    const result = injectWikilinks(blocks) as TestBlock[]
     expect(result[0].content).toHaveLength(3)
-    expect(result[0].content[0]).toEqual({ type: 'text', text: 'before ' })
-    expect(result[0].content[1]).toEqual({
+    expect(result[0].content![0]).toEqual({ type: 'text', text: 'before ' })
+    expect(result[0].content![1]).toEqual({
       type: 'wikilink',
       props: { target: 'My Note' },
       content: undefined,
     })
-    expect(result[0].content[2]).toEqual({ type: 'text', text: ' after' })
+    expect(result[0].content![2]).toEqual({ type: 'text', text: ' after' })
   })
 
   it('handles multiple wikilinks in one text node', () => {
@@ -61,11 +68,11 @@ describe('injectWikilinks', () => {
       ],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[]
-    const wikilinkNodes = result[0].content.filter((n: AnyBlock) => n.type === 'wikilink')
+    const result = injectWikilinks(blocks) as TestBlock[]
+    const wikilinkNodes = result[0].content!.filter((n: TestBlock) => n.type === 'wikilink')
     expect(wikilinkNodes).toHaveLength(2)
-    expect(wikilinkNodes[0].props.target).toBe('A')
-    expect(wikilinkNodes[1].props.target).toBe('B')
+    expect(wikilinkNodes[0].props!.target).toBe('A')
+    expect(wikilinkNodes[1].props!.target).toBe('B')
   })
 
   it('passes through non-text content items unchanged', () => {
@@ -75,8 +82,8 @@ describe('injectWikilinks', () => {
       ],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[]
-    expect(result[0].content[0].type).toBe('link')
+    const result = injectWikilinks(blocks) as TestBlock[]
+    expect(result[0].content![0].type).toBe('link')
   })
 
   it('recursively processes children blocks', () => {
@@ -89,16 +96,16 @@ describe('injectWikilinks', () => {
       }],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[]
-    const childContent = result[0].children[0].content
+    const result = injectWikilinks(blocks) as TestBlock[]
+    const childContent = result[0].children![0].content!
     expect(childContent).toHaveLength(2)
     expect(childContent[1].type).toBe('wikilink')
-    expect(childContent[1].props.target).toBe('Nested')
+    expect(childContent[1].props!.target).toBe('Nested')
   })
 
   it('handles blocks without content or children', () => {
     const blocks = [{ type: 'heading', props: { level: 1 } }]
-    const result = injectWikilinks(blocks) as AnyBlock[]
+    const result = injectWikilinks(blocks as unknown[]) as TestBlock[]
     expect(result).toEqual(blocks)
   })
 
@@ -109,10 +116,10 @@ describe('injectWikilinks', () => {
       ],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[]
-    expect(result[0].content[0].type).toBe('wikilink')
-    expect(result[0].content[0].props.target).toBe('First')
-    expect(result[0].content[1].text).toBe(' text')
+    const result = injectWikilinks(blocks) as TestBlock[]
+    expect(result[0].content![0].type).toBe('wikilink')
+    expect(result[0].content![0].props!.target).toBe('First')
+    expect(result[0].content![1].text).toBe(' text')
   })
 
   it('handles text node that ends with wikilink', () => {
@@ -122,9 +129,9 @@ describe('injectWikilinks', () => {
       ],
     }]
 
-    const result = injectWikilinks(blocks) as AnyBlock[]
-    expect(result[0].content[0].text).toBe('text ')
-    expect(result[0].content[1].type).toBe('wikilink')
+    const result = injectWikilinks(blocks) as TestBlock[]
+    expect(result[0].content![0].text).toBe('text ')
+    expect(result[0].content![1].type).toBe('wikilink')
   })
 })
 

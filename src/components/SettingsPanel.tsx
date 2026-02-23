@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { X, Eye, EyeSlash } from '@phosphor-icons/react'
 import type { Settings } from '../types'
 
@@ -9,10 +9,6 @@ interface SettingsPanelProps {
   onClose: () => void
 }
 
-function maskKey(key: string): string {
-  if (key.length <= 8) return '•'.repeat(key.length)
-  return key.slice(0, 7) + '•'.repeat(Math.min(key.length - 11, 12)) + key.slice(-4)
-}
 
 interface KeyFieldProps {
   label: string
@@ -70,21 +66,15 @@ function KeyField({ label, placeholder, value, onChange, onClear }: KeyFieldProp
 }
 
 export function SettingsPanel({ open, settings, onSave, onClose }: SettingsPanelProps) {
-  const [anthropicKey, setAnthropicKey] = useState('')
-  const [openaiKey, setOpenaiKey] = useState('')
-  const [googleKey, setGoogleKey] = useState('')
-  const [githubToken, setGithubToken] = useState('')
-
-  useEffect(() => {
-    if (open) {
-      setAnthropicKey(settings.anthropic_key ?? '')
-      setOpenaiKey(settings.openai_key ?? '')
-      setGoogleKey(settings.google_key ?? '')
-      setGithubToken(settings.github_token ?? '')
-    }
-  }, [open, settings])
-
   if (!open) return null
+  return <SettingsPanelInner settings={settings} onSave={onSave} onClose={onClose} />
+}
+
+function SettingsPanelInner({ settings, onSave, onClose }: Omit<SettingsPanelProps, 'open'>) {
+  const [anthropicKey, setAnthropicKey] = useState(settings.anthropic_key ?? '')
+  const [openaiKey, setOpenaiKey] = useState(settings.openai_key ?? '')
+  const [googleKey, setGoogleKey] = useState(settings.google_key ?? '')
+  const [githubToken, setGithubToken] = useState(settings.github_token ?? '')
 
   const handleSave = () => {
     const trimmed: Settings = {
@@ -218,6 +208,3 @@ export function SettingsPanel({ open, settings, onSave, onClose }: SettingsPanel
     </div>
   )
 }
-
-// Export maskKey for use in other components
-export { maskKey }
