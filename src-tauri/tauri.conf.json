@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "laputa",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "club.refactoring.laputa",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5201",
@@ -26,7 +26,9 @@
       "csp": null,
       "assetProtocol": {
         "enable": true,
-        "scope": ["**"]
+        "scope": [
+          "**"
+        ]
       }
     }
   },
