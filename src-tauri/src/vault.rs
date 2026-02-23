@@ -2563,4 +2563,135 @@ References:
         assert!(content.contains("title: New Name"));
         assert!(content.contains("# New Name"));
     }
+
+    // --- type field parsing tests ---
+
+    #[test]
+    fn test_parse_type_field() {
+        let dir = TempDir::new().unwrap();
+        let entry = parse_test_entry(
+            &dir,
+            "project/my-project.md",
+            "---\ntype: Project\nStatus: Active\n---\n# My Project\n",
+        );
+        assert_eq!(entry.is_a, Some("Project".to_string()));
+    }
+
+    #[test]
+    fn test_parse_type_field_takes_precedence_over_is_a() {
+        let dir = TempDir::new().unwrap();
+        let entry = parse_test_entry(
+            &dir,
+            "project/conflict.md",
+            "---\ntype: Project\nIs A: Note\n---\n# Conflict\n",
+        );
+        assert_eq!(entry.is_a, Some("Project".to_string()));
+    }
+
+    #[test]
+    fn test_parse_legacy_is_a_still_works() {
+        let dir = TempDir::new().unwrap();
+        let entry = parse_test_entry(
+            &dir,
+            "note/legacy.md",
+            "---\nIs A: Note\nStatus: Active\n---\n# Legacy\n",
+        );
+        assert_eq!(entry.is_a, Some("Note".to_string()));
+    }
+
+    #[test]
+    fn test_parse_snake_case_is_a_still_works() {
+        let dir = TempDir::new().unwrap();
+        let entry = parse_test_entry(
+            &dir,
+            "note/snake.md",
+            "---\nis_a: Note\nStatus: Draft\n---\n# Snake Case\n",
+        );
+        assert_eq!(entry.is_a, Some("Note".to_string()));
+    }
+
+    // --- migration tests ---
+
+    #[test]
+    fn test_migrate_file_is_a_to_type() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("note.md");
+        fs::write(&path, "---\nis_a: Project\nStatus: Active\n---\n# Note\n").unwrap();
+
+        assert!(migrate_file_is_a_to_type(&path).unwrap());
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains("type: Project"));
+        assert!(!content.contains("is_a:"));
+    }
+
+    #[test]
+    fn test_migrate_file_quoted_is_a_to_type() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("note.md");
+        fs::write(&path, "---\n\"Is A\": Type\norder: 1\n---\n# My Type\n").unwrap();
+
+        assert!(migrate_file_is_a_to_type(&path).unwrap());
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains("type: Type"));
+        assert!(!content.contains("Is A"));
+    }
+
+    #[test]
+    fn test_migrate_file_preserves_existing_type() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("note.md");
+        fs::write(
+            &path,
+            "---\ntype: Project\nis_a: Note\nStatus: Active\n---\n# Note\n",
+        )
+        .unwrap();
+
+        assert!(migrate_file_is_a_to_type(&path).unwrap());
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains("type: Project"));
+        assert!(!content.contains("is_a:"));
+    }
+
+    #[test]
+    fn test_migrate_file_no_change_needed() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("note.md");
+        fs::write(&path, "---\ntype: Project\nStatus: Active\n---\n# Note\n").unwrap();
+
+        assert!(!migrate_file_is_a_to_type(&path).unwrap());
+    }
+
+    #[test]
+    fn test_migrate_vault() {
+        let dir = TempDir::new().unwrap();
+        create_test_file(
+            dir.path(),
+            "note/a.md",
+            "---\nis_a: Note\n---\n# A\n",
+        );
+        create_test_file(
+            dir.path(),
+            "project/b.md",
+            "---\ntype: Project\n---\n# B\n",
+        );
+        create_test_file(
+            dir.path(),
+            "type/c.md",
+            "---\n\"Is A\": Type\norder: 1\n---\n# C\n",
+        );
+
+        let migrated = migrate_is_a_to_type(dir.path().to_str().unwrap()).unwrap();
+        assert_eq!(migrated, 2); // a.md and c.md
+
+        let a = fs::read_to_string(dir.path().join("note/a.md")).unwrap();
+        assert!(a.contains("type: Note"));
+        assert!(!a.contains("is_a:"));
+
+        let b = fs::read_to_string(dir.path().join("project/b.md")).unwrap();
+        assert!(b.contains("type: Project")); // unchanged
+
+        let c = fs::read_to_string(dir.path().join("type/c.md")).unwrap();
+        assert!(c.contains("type: Type"));
+        assert!(!c.contains("Is A"));
+    }
 }
