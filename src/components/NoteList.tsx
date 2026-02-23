@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, memo } from 'react'
+import { Virtuoso } from 'react-virtuoso'
 import type { VaultEntry, SidebarSelection, ModifiedFile } from '../types'
 import { Input } from '@/components/ui/input'
 import {
@@ -133,6 +134,18 @@ function EntityView({ entity, groups, query, collapsedGroups, sortPrefs, onToggl
   )
 }
 
+function ListViewHeader({ typeDocument, isTrashView, expiredTrashCount, typeEntryMap, onClickNote }: {
+  typeDocument: VaultEntry | null; isTrashView: boolean; expiredTrashCount: number
+  typeEntryMap: Record<string, VaultEntry>; onClickNote: (entry: VaultEntry, e: React.MouseEvent) => void
+}) {
+  return (
+    <>
+      {typeDocument && <PinnedCard entry={typeDocument} typeEntryMap={typeEntryMap} onClickNote={onClickNote} />}
+      <TrashWarningBanner expiredCount={isTrashView ? expiredTrashCount : 0} />
+    </>
+  )
+}
+
 function ListView({ typeDocument, isTrashView, expiredTrashCount, searched, query, renderItem, typeEntryMap, onClickNote }: {
   typeDocument: VaultEntry | null; isTrashView: boolean; expiredTrashCount: number
   searched: VaultEntry[]; query: string
@@ -140,15 +153,27 @@ function ListView({ typeDocument, isTrashView, expiredTrashCount, searched, quer
   typeEntryMap: Record<string, VaultEntry>; onClickNote: (entry: VaultEntry, e: React.MouseEvent) => void
 }) {
   const emptyText = isTrashView ? 'Trash is empty' : (query ? 'No matching notes' : 'No notes found')
+  const hasHeader = typeDocument || (isTrashView && expiredTrashCount > 0)
+
+  if (searched.length === 0) {
+    return (
+      <div className="h-full overflow-y-auto">
+        {hasHeader && <ListViewHeader typeDocument={typeDocument} isTrashView={isTrashView} expiredTrashCount={expiredTrashCount} typeEntryMap={typeEntryMap} onClickNote={onClickNote} />}
+        <EmptyMessage text={emptyText} />
+      </div>
+    )
+  }
+
   return (
-    <div className="h-full overflow-y-auto">
-      {typeDocument && <PinnedCard entry={typeDocument} typeEntryMap={typeEntryMap} onClickNote={onClickNote} />}
-      <TrashWarningBanner expiredCount={isTrashView ? expiredTrashCount : 0} />
-      {searched.length === 0
-        ? <EmptyMessage text={emptyText} />
-        : searched.map((entry) => renderItem(entry))
-      }
-    </div>
+    <Virtuoso
+      style={{ height: '100%' }}
+      data={searched}
+      overscan={200}
+      components={{
+        Header: hasHeader ? () => <ListViewHeader typeDocument={typeDocument} isTrashView={isTrashView} expiredTrashCount={expiredTrashCount} typeEntryMap={typeEntryMap} onClickNote={onClickNote} /> : undefined,
+      }}
+      itemContent={(_index, entry) => renderItem(entry)}
+    />
   )
 }
 
